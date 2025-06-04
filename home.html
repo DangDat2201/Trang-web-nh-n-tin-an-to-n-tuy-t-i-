@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bảng tin | SafeMessenger</title>
+  <style>
+    /* General styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Arial, sans-serif; /* Changed font */
+    }
+
+    body {
+      display: flex;
+      height: 100vh;
+      background-color: #e9ebee; /* Lighter background */
+      color: #1c1e21; /* Darker text for better readability */
+    }
+
+    /* Sidebar styles */
+    .sidebar {
+      width: 280px; /* Slightly wider sidebar */
+      background-color: #fff;
+      border-right: 1px solid #e0e0e0; /* Lighter border */
+      padding: 20px 0; /* Adjusted padding */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.05); /* Subtle shadow */
+      flex-shrink: 0; /* Prevent shrinking */
+    }
+
+    .sidebar h2 {
+      font-size: 24px; /* Larger title */
+      margin-bottom: 30px; /* Increased margin */
+      color: #1877f2;
+      padding: 0 20px; /* Padding for title */
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      flex-grow: 1; /* Allows list to take available space */
+    }
+
+    .sidebar ul li {
+      padding: 15px 20px; /* Increased padding */
+      color: #333;
+      cursor: pointer;
+      transition: background 0.3s ease, color 0.3s ease, padding-left 0.3s ease; /* Smooth transitions */
+      display: flex;
+      align-items: center;
+      gap: 10px; /* Space between icon and text */
+      font-size: 15px;
+      font-weight: 500;
+      border-left: 3px solid transparent; /* Highlight on hover */
+    }
+
+    .sidebar ul li:hover {
+      background-color: #f0f2f5; /* Lighter hover background */
+      color: #1877f2; /* Blue text on hover */
+      padding-left: 25px; /* Slight indentation */
+      border-left-color: #1877f2; /* Blue border on hover */
+    }
+
+    /* Active sidebar item (new) */
+    .sidebar ul li.active {
+      background-color: #e7f3ff;
+      color: #1877f2;
+      border-left-color: #1877f2;
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      font-size: 11px; /* Smaller font */
+      color: #888; /* Softer gray */
+      text-align: center;
+      margin-top: 40px; /* Increased margin */
+      padding: 0 20px 20px;
+      line-height: 1.6;
+    }
+
+    /* Main content area */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: hidden; /* Prevent main content scrollbar if feed is scrollable */
+    }
+
+    /* Top bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #fff;
+      padding: 10px 25px; /* Adjusted padding */
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* Stronger shadow */
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      min-height: 60px; /* Fixed height */
+    }
+
+    .search-box {
+        display: flex;
+        align-items: center;
+        position: relative;
+    }
+
+    .search-box input {
+      padding: 10px 15px 10px 40px; /* Padding for icon */
+      border-radius: 25px; /* More rounded */
+      border: 1px solid #ccd0d5; /* Lighter border */
+      outline: none;
+      width: 350px; /* Wider search box */
+      background-color: #f0f2f5;
+      font-size: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .search-box input:focus {
+        border-color: #1877f2;
+        box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+        background-color: #fff;
+    }
+
+    /* Search icon (new) */
+    .search-box::before {
+        content: '🔍'; /* Unicode magnifying glass */
+        position: absolute;
+        left: 15px;
+        color: #606770;
+        font-size: 16px;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px; /* Space between elements */
+    }
+
+    .user-info span {
+      font-weight: 600; /* Bolder username */
+      color: #1c1e21;
+      font-size: 16px;
+    }
+
+    .user-avatar {
+      width: 40px; /* Larger avatar */
+      height: 40px;
+      background-color: #1877f2;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      font-size: 18px;
+      border: 2px solid #fff; /* White border */
+      box-shadow: 0 0 0 2px #1877f2; /* Blue glow */
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .user-avatar:hover {
+        transform: scale(1.05);
+    }
+
+    /* Feed area */
+    .feed {
+      flex: 1;
+      padding: 25px 50px; /* Increased padding */
+      overflow-y: auto; /* Scrollable feed */
+      background: linear-gradient(to bottom right, #f0f2f5, #e9ebee); /* Subtle gradient */
+    }
+
+    /* Post creation box */
+    .post-box {
+      background-color: white;
+      padding: 25px; /* Increased padding */
+      border-radius: 15px; /* More rounded corners */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Stronger shadow */
+      margin-bottom: 40px; /* Increased margin */
+      border: 1px solid #e0e0e0;
+    }
+
+    .post-box textarea {
+      width: 100%;
+      resize: vertical; /* Allow vertical resizing */
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 16px;
+      min-height: 80px; /* Taller textarea */
+      background-color: #fcfcfc;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .post-box textarea:focus {
+        border-color: #1877f2;
+        box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+        outline: none;
+    }
+
+    .post-box input[type="file"] {
+      margin-top: 15px; /* Increased margin */
+      font-size: 14px;
+      color: #555;
+    }
+
+    .post-box button {
+      margin-top: 20px; /* Increased margin */
+      background-color: #1877f2;
+      color: white;
+      border: none;
+      padding: 12px 30px; /* Larger padding */
+      border-radius: 10px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+
+    .post-box button:hover {
+      background-color: #166fe5;
+      transform: translateY(-1px);
+      box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+    }
+
+    /* Individual post styles */
+    .post {
+      background-color: #fff;
+      padding: 20px; /* Increased padding */
+      border-radius: 15px; /* More rounded corners */
+      margin-bottom: 25px; /* Increased margin */
+      border: 1px solid #e0e0e0;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .post:hover {
+      transform: translateY(-3px); /* Lift effect on hover */
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    }
+
+    .post .user {
+      font-weight: bold;
+      color: #1877f2;
+      font-size: 17px;
+      margin-bottom: 5px;
+    }
+
+    .post .time {
+      font-size: 12px;
+      color: #888; /* Softer gray */
+      margin-bottom: 10px;
+    }
+
+    .post .content {
+      margin-top: 10px;
+      font-size: 16px; /* Slightly larger content font */
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .post img {
+      margin-top: 15px; /* Increased margin */
+      width: 100%;
+      max-height: 350px; /* Taller images */
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid #eee;
+    }
+
+    .aes-hint {
+      font-size: 13px;
+      color: #555;
+      margin-top: 15px; /* Increased margin */
+      background: #e7f3ff;
+      padding: 10px 15px; /* More padding */
+      border-left: 5px solid #1877f2; /* Thicker border */
+      border-radius: 8px; /* More rounded */
+      line-height: 1.5;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1024px) {
+        .sidebar {
+            width: 240px;
+        }
+        .feed {
+            padding: 20px 30px;
+        }
+        .search-box input {
+            width: 250px;
+        }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 70px; /* Collapsed sidebar */
+        padding: 15px 0;
+      }
+      .sidebar h2 {
+        font-size: 0; /* Hide title */
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .sidebar h2::before {
+          content: 'SM'; /* Abbreviation for title */
+          font-size: 20px;
+          color: #1877f2;
+      }
+      .sidebar ul li {
+        padding: 15px 0;
+        justify-content: center; /* Center icons */
+      }
+      .sidebar ul li span {
+          display: none; /* Hide text */
+      }
+      .sidebar ul li:hover {
+          padding-left: 0;
+      }
+      .sidebar-footer {
+          display: none; /* Hide footer */
+      }
+
+      .top-bar {
+        padding: 10px 15px;
+      }
+      .search-box input {
+          width: 200px;
+          padding-left: 35px;
+      }
+      .user-info span {
+          display: none; /* Hide username */
+      }
+      .feed {
+          padding: 15px 20px;
+      }
+      .post-box {
+          padding: 15px;
+          margin-bottom: 30px;
+      }
+      .post {
+          padding: 15px;
+          margin-bottom: 20px;
+      }
+      .aes-hint {
+          padding: 8px 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+        .search-box input {
+            width: 150px;
+            font-size: 14px;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            font-size: 16px;
+        }
+        .post-box textarea {
+            min-height: 60px;
+            font-size: 14px;
+        }
+        .post-box button {
+            padding: 10px 20px;
+            font-size: 15px;
+        }
+        .post .content {
+            font-size: 14px;
+        }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div>
+      <h2>SafeMessenger</h2>
+      <ul>
+        <li class="active" onclick="location.href='/home'">📄 Bảng tin</li>
+        <li onclick="location.href='/chat'">💬 Tin nhắn</li>
+        <li onclick="alert('Tính năng nhóm đang phát triển')">👥 Nhóm</li>
+        <li onclick="alert('Tính năng hồ sơ đang phát triển')">🙍 Hồ sơ cá nhân</li>
+        <li onclick="location.href='/login'">🚪 Đăng xuất</li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">
+      © 2025 SafeMessenger<br>
+      Bảo mật bởi AES 256-bit
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="top-bar">
+      <div class="search-box">
+        <input type="text" placeholder="Tìm kiếm bài viết, người dùng...">
+      </div>
+      <div class="user-info">
+        <span>Xin chào, Admin</span>
+        <div class="user-avatar">A</div>
+      </div>
+    </div>
+
+    <div class="feed">
+      <div class="post-box">
+        <textarea placeholder="Bạn đang nghĩ gì?"></textarea>
+        <input type="file" accept="image/*">
+        <button onclick="postMessage()">Đăng bài</button>
+        <div class="aes-hint">🔐 Lưu ý: Mọi nội dung bạn chia sẻ sẽ được mã hóa bằng AES để đảm bảo an toàn tối đa.</div>
+      </div>
+
+      <div class="post">
+        <div class="user">Nguyễn Văn A</div>
+        <div class="time">1 giờ trước</div>
+        <div class="content">Hôm nay là một ngày tuyệt vời! 😊</div>
+        <img src="https://picsum.photos/id/1015/800/400" alt="Ảnh minh họa">
+      </div>
+
+      <div class="post">
+        <div class="user">Trần Thị B</div>
+        <div class="time">2 giờ trước</div>
+        <div class="content">Hệ thống SafeMessenger giúp mình cảm thấy an toàn hơn khi trò chuyện.</div>
+        <img src="https://picsum.photos/id/1005/800/400" alt="Ảnh minh họa">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function postMessage() {
+      const textarea = document.querySelector("textarea");
+      if (textarea.value.trim() === "") {
+        alert("Vui lòng nhập nội dung!");
+        return;
+      }
+      alert("Nội dung đã được mã hóa bằng AES và đăng thành công!");
+      textarea.value = "";
+    }
+
+    // Add active class to current sidebar item
+    document.addEventListener('DOMContentLoaded', () => {
+        const path = window.location.pathname;
+        const links = document.querySelectorAll('.sidebar ul li');
+        links.forEach(link => {
+            if (link.onclick && link.onclick.toString().includes(path)) {
+                link.classList.add('active');
+            }
+        });
+    });
+  </script>
+</body>
+</html>

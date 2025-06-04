@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Messenger - Login/Register</title>
+  <style>
+    /* General styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Changed font */
+    }
+
+    body {
+      background: linear-gradient(to right, #4a00e0, #8e2de2); /* Violet gradient */
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden; /* Prevent scrollbars */
+      position: relative;
+    }
+
+    /* Background particles/shapes (new) */
+    body::before, body::after {
+      content: '';
+      position: absolute;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      filter: blur(50px);
+      z-index: -1;
+      animation: float 15s infinite ease-in-out alternate;
+    }
+
+    body::before {
+      width: 200px;
+      height: 200px;
+      top: 10%;
+      left: 15%;
+    }
+
+    body::after {
+      width: 150px;
+      height: 150px;
+      bottom: 15%;
+      right: 20%;
+      animation-delay: 2s;
+    }
+
+    @keyframes float {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      100% { transform: translate(20px, 30px) rotate(5deg); }
+    }
+
+    .container {
+      background-color: #fff;
+      width: 900px;
+      min-height: 550px;
+      border-radius: 15px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4); /* Stronger shadow */
+      overflow: hidden;
+      display: flex;
+      animation: fadeIn 1s ease-in-out; /* Adjusted animation */
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-container {
+      width: 50%;
+      padding: 50px 40px;
+      transition: all 0.5s ease-in-out; /* Smooth transition for form switch */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background-color: #fcfcfc; /* Slightly off-white background */
+      position: relative;
+      z-index: 2;
+    }
+
+    h2 {
+      color: #4a00e0;
+      margin-bottom: 30px;
+      font-size: 32px; /* Larger font size */
+      text-align: center;
+      font-weight: 700;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+
+    label {
+      font-size: 15px; /* Slightly larger label */
+      color: #333;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 14px;
+      margin: 8px 0 20px; /* Adjusted margins */
+      border: 1px solid #ddd; /* Lighter border */
+      border-radius: 10px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Added box-shadow transition */
+      background-color: #f9f9f9;
+    }
+
+    input:focus {
+      border-color: #6a00ff; /* Brighter focus color */
+      box-shadow: 0 0 0 3px rgba(106, 0, 255, 0.2); /* Glow effect on focus */
+      outline: none;
+    }
+
+    .error-message {
+      color: #e74c3c; /* A more distinct red */
+      font-size: 13px;
+      margin-top: -15px;
+      margin-bottom: 10px;
+      font-weight: 500;
+      text-align: left;
+      animation: shake 0.5s; /* Shake animation for errors */
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-5px); }
+      40%, 80% { transform: translateX(5px); }
+    }
+
+    button {
+      width: 100%;
+      padding: 15px; /* Slightly larger button padding */
+      margin-top: 20px; /* Adjusted margin */
+      background: linear-gradient(to right, #4a00e0, #8e2de2); /* Gradient button */
+      border: none;
+      color: white;
+      border-radius: 10px;
+      font-size: 18px; /* Larger font */
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease; /* Smooth transition */
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #3a00c0, #7e1de1); /* Darker gradient on hover */
+      transform: translateY(-2px); /* Slight lift effect */
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .switch-btn {
+      text-align: center;
+      margin-top: 30px; /* Increased margin */
+      cursor: pointer;
+      color: #4a00e0;
+      font-weight: bold;
+      transition: color 0.3s ease, transform 0.2s ease;
+      font-size: 15px;
+    }
+
+    .switch-btn:hover {
+      color: #2d00b2;
+      transform: translateY(-1px);
+    }
+
+    .image-section {
+      width: 50%;
+      background: url('https://images.unsplash.com/photo-1607746882042-944635dfe10e?auto=format&fit=crop&w=800&q=80') no-repeat center center; /* High-res image */
+      background-size: cover;
+      animation: slideIn 1s ease-in-out; /* Adjusted animation */
+      position: relative;
+      overflow: hidden; /* Ensure no overflow from pseudo-elements */
+    }
+
+    /* Overlay for image section (new) */
+    .image-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(74, 0, 224, 0.3); /* Purple overlay */
+      mix-blend-mode: multiply; /* Blends with background image */
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(150px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .remember {
+      display: flex;
+      align-items: center;
+      gap: 8px; /* Closer gap */
+      margin-top: -5px; /* Adjusted margin */
+      margin-bottom: 20px; /* Adjusted margin */
+    }
+
+    .remember input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: #4a00e0; /* Color the checkbox */
+        cursor: pointer;
+    }
+
+    .remember label {
+      font-size: 13px;
+      color: #555;
+      font-weight: normal;
+    }
+
+    .note {
+      margin-top: 20px; /* Increased margin */
+      font-size: 13px;
+      color: #666;
+      text-align: center;
+      line-height: 1.5;
+      padding: 10px;
+      border-top: 1px dashed #eee; /* Separator */
+    }
+
+    .note strong {
+      color: #4a00e0;
+      font-weight: bold;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        width: 95%; /* Wider on small screens */
+        min-height: auto;
+        padding: 20px;
+      }
+
+      .image-section {
+        display: none; /* Hide image on small screens */
+      }
+
+      .form-container {
+        width: 100%;
+        padding: 30px 20px; /* Reduced padding */
+      }
+
+      h2 {
+        font-size: 26px;
+        margin-bottom: 25px;
+      }
+
+      button {
+        padding: 12px;
+        font-size: 16px;
+      }
+
+      .switch-btn {
+        margin-top: 20px;
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+        .form-container {
+            padding: 20px 15px;
+        }
+        h2 {
+            font-size: 24px;
+        }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="form-container" id="formBox">
+      <h2 id="formTitle">Đăng Nhập</h2>
+      <form id="loginForm" method="POST" action="/login">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" name="username" placeholder="Email" required>
+
+        <label for="loginPassword">Mật khẩu</label>
+        <input type="password" id="loginPassword" placeholder="Mật khẩu" required>
+
+        <div class="remember">
+          <input type="checkbox" id="rememberMe">
+          <label for="rememberMe">Ghi nhớ đăng nhập</label>
+        </div>
+
+        <button type="submit">Đăng Nhập</button>
+      </form>
+
+      <form id="registerForm" style="display:none">
+        <label for="regUsername">Tên người dùng</label>
+        <input type="text" id="regUsername" placeholder="Tên người dùng" required>
+
+        <label for="regEmail">Email</label>
+        <input type="email" id="regEmail" placeholder="Email" required>
+
+        <label for="regPassword">Mật khẩu</label>
+        <input type="password" id="regPassword" placeholder="Mật khẩu" required>
+
+        <label for="regConfirm">Xác nhận mật khẩu</label>
+        <input type="password" id="regConfirm" placeholder="Xác nhận mật khẩu" required>
+
+        <div class="error-message" id="errorMsg"></div>
+        <button type="submit">Đăng Ký</button>
+      </form>
+
+      <div class="switch-btn" onclick="toggleForm()" id="switchLabel">
+        Bạn chưa có tài khoản? Đăng ký ngay
+      </div>
+
+      <div class="note">
+        Hệ thống sử dụng <strong>mã hóa AES</strong> để bảo vệ tin nhắn người dùng.
+      </div>
+    </div>
+
+    <div class="image-section"></div>
+  </div>
+
+  <script>
+    let isLogin = true;
+
+    function toggleForm() {
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const title = document.getElementById('formTitle');
+      const switchBtn = document.getElementById('switchLabel');
+      const errorMsg = document.getElementById('errorMsg');
+
+      if (isLogin) {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        title.textContent = 'Đăng Ký';
+        switchBtn.textContent = 'Đã có tài khoản? Đăng nhập';
+      } else {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        title.textContent = 'Đăng Nhập';
+        switchBtn.textContent = 'Bạn chưa có tài khoản? Đăng ký ngay';
+        errorMsg.textContent = '';
+      }
+      isLogin = !isLogin;
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+        // e.preventDefault();
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const pass = document.getElementById('regPassword').value;
+      const confirm = document.getElementById('regConfirm').value;
+      const errorMsg = document.getElementById('errorMsg');
+
+      if (pass !== confirm) {
+        errorMsg.textContent = "⚠️ Mật khẩu xác nhận không khớp!";
+        return;
+      }
+
+      if (pass.length < 6) {
+        errorMsg.textContent = "⚠️ Mật khẩu phải từ 6 ký tự trở lên!";
+        return;
+      }
+
+      alert("Đăng ký thành công! (Giả lập)");
+      toggleForm();
+    });
+  </script>
+</body>
+</html>

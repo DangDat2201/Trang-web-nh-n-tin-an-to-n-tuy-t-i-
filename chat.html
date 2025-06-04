@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat | Secure Messenger</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* General styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background-color: #f8f9fa;
+      color: #343a40;
+    }
+
+    /* Header styles */
+    header {
+      height: 65px;
+      background-color: #4267B2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 25px;
+      color: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      flex-shrink: 0;
+    }
+
+    header h2 {
+      font-size: 24px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    header .user-display {
+        font-size: 15px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    header .user-display .username {
+        color: #e0e0e0;
+    }
+
+    header .user-display a {
+        color: #e0e0e0 !important;
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.2s ease;
+    }
+
+    header .user-display a:hover {
+        color: #ffffff !important;
+        text-decoration: underline;
+    }
+
+    /* Chat container layout */
+    .chat-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      background-color: #e7e7e7;
+    }
+
+    /* Chat sidebar (contacts/groups) */
+    .chat-sidebar {
+      width: 320px;
+      background-color: #fff;
+      border-right: 1px solid #e0e0e0;
+      overflow-y: auto;
+      flex-shrink: 0;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.03);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-sidebar h3 {
+      padding: 18px 20px;
+      border-bottom: 1px solid #eee;
+      background: #f0f2f5;
+      font-size: 18px;
+      color: #333;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .sidebar-actions {
+        display: flex;
+        padding: 10px 20px;
+        border-bottom: 1px solid #eee;
+        gap: 10px;
+    }
+
+    .sidebar-actions button {
+        flex: 1;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: background-color 0.2s ease;
+    }
+
+    .sidebar-actions .create-group-btn {
+        background-color: #28a745; /* Green for create */
+        color: white;
+    }
+
+    .sidebar-actions .create-group-btn:hover {
+        background-color: #218838;
+    }
+
+    .sidebar-actions .join-group-btn {
+        background-color: #007bff; /* Blue for join */
+        color: white;
+    }
+
+    .sidebar-actions .join-group-btn:hover {
+        background-color: #0069d9;
+    }
+
+    .groups-list {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .group-item {
+      padding: 15px 20px;
+      border-bottom: 1px solid #f5f5f5;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+      color: #444;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .group-item:hover {
+      background-color: #f0f2f5;
+      color: #1877f2;
+    }
+
+    .group-item.active {
+        background-color: #e7f3ff;
+        color: #1877f2;
+        font-weight: 600;
+        border-left: 4px solid #1877f2; /* Active indicator */
+        padding-left: 16px; /* Adjust padding for border */
+    }
+
+    .group-item i { /* Icon styling */
+        color: #6c757d;
+        font-size: 18px;
+    }
+
+    .group-item.active i {
+        color: #1877f2;
+    }
+
+    /* Main chat window */
+    .chat-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background-color: #e5ddd5;
+      background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911e-60d70fcded21.png');
+      background-repeat: repeat;
+    }
+
+    /* Messages display area */
+    .messages {
+      flex: 1;
+      padding: 20px 30px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Message bubble styles */
+    .message {
+      max-width: 65%;
+      padding: 12px 18px;
+      margin: 8px 0;
+      border-radius: 18px;
+      position: relative;
+      word-wrap: break-word;
+      font-size: 15px;
+      line-height: 1.4;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.08);
+      opacity: 0; /* Hidden initially for animation */
+      transform: translateY(10px); /* Slide up effect */
+      animation: messageEnter 0.3s ease-out forwards;
+    }
+
+    @keyframes messageEnter {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .message .sender {
+        font-size: 12px;
+        font-weight: bold;
+        margin-bottom: 5px;
+        opacity: 0.8;
+    }
+
+    .sent {
+      background-color: #dcf8c6;
+      align-self: flex-end;
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+
+    .received {
+      background-color: white;
+      align-self: flex-start;
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+    }
+
+    /* Different sender color for received messages (new) */
+    .received .sender {
+        color: #056162; /* A distinct color for received sender */
+    }
+    .sent .sender {
+        color: #2196F3; /* A distinct color for sent sender */
+    }
+
+
+    .message::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border: 10px solid transparent;
+    }
+
+    .sent::before {
+        border-bottom-color: #dcf8c6;
+        border-right-color: #dcf8c6;
+        right: -8px;
+    }
+
+    .received::before {
+        border-bottom-color: white;
+        border-left-color: white;
+        left: -8px;
+    }
+
+    .timestamp {
+      font-size: 10px;
+      margin-top: 5px;
+      opacity: 0.7;
+      display: block;
+      text-align: right;
+      color: #666;
+    }
+    .received .timestamp {
+        text-align: left;
+    }
+
+    /* Input area */
+    .input-area {
+      display: flex;
+      padding: 15px 20px;
+      background-color: #f0f2f5;
+      border-top: 1px solid #ddd;
+      align-items: center;
+      flex-shrink: 0;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+    }
+
+    .input-area form {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .input-area input[type="text"] {
+      flex: 1;
+      padding: 12px 18px;
+      border-radius: 25px;
+      border: 1px solid #ccc;
+      outline: none;
+      font-size: 15px;
+      background-color: #fff;
+      transition: all 0.3s ease;
+    }
+
+    .input-area input[type="text"]:focus {
+        border-color: #4267B2;
+        box-shadow: 0 0 0 2px rgba(66, 103, 178, 0.2);
+    }
+
+    .input-area input[type="file"] {
+        display: none;
+    }
+
+    .file-upload-btn {
+        background-color: #f0f2f5;
+        border: 1px solid #ccc;
+        padding: 10px 15px;
+        border-radius: 25px;
+        cursor: pointer;
+        color: #555;
+        font-size: 14px;
+        white-space: nowrap;
+        transition: background-color 0.2s ease, color 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .file-upload-btn:hover {
+        background-color: #e0e2e5;
+        color: #333;
+    }
+
+    .input-area button {
+      background-color: #4267B2;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .input-area button:hover {
+      background-color: #3b5998;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .emoji-picker {
+      font-size: 22px;
+      cursor: pointer;
+      color: #606770;
+      transition: transform 0.2s ease;
+    }
+    .emoji-picker:hover {
+        transform: scale(1.1);
+    }
+
+    .aes-key-input {
+        position: relative;
+    }
+    .aes-key-input input[type="text"] {
+        width: 150px;
+        padding: 10px 15px;
+        border-radius: 25px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+        background-color: #fff;
+        transition: all 0.3s ease;
+    }
+    .aes-key-input input[type="text"]:focus {
+        border-color: #4267B2;
+        box-shadow: 0 0 0 2px rgba(66, 103, 178, 0.2);
+    }
+    .aes-key-input label { /* Label for the AES key input */
+        position: absolute;
+        top: -10px;
+        left: 10px;
+        font-size: 11px;
+        color: #777;
+        background: #f0f2f5;
+        padding: 0 5px;
+        border-radius: 5px;
+        z-index: 10;
+    }
+
+    .group-title {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #212529;
+      padding: 8px 15px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+      align-self: center;
+      max-width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    /* Modal for creating/joining groups (new) */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        width: 90%;
+        max-width: 400px;
+        animation: modalOpen 0.3s ease-out;
+    }
+
+    @keyframes modalOpen {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-content h3 {
+        margin-bottom: 20px;
+        color: #333;
+        font-size: 22px;
+        text-align: center;
+    }
+
+    .modal-content input[type="text"] {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .modal-actions button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        transition: background-color 0.2s ease;
+    }
+
+    .modal-actions .cancel-btn {
+        background-color: #ccc;
+        color: #333;
+    }
+    .modal-actions .cancel-btn:hover {
+        background-color: #bbb;
+    }
+
+    .modal-actions .confirm-btn {
+        background-color: #4267B2;
+        color: white;
+    }
+    .modal-actions .confirm-btn:hover {
+        background-color: #3b5998;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .chat-sidebar {
+        display: none;
+      }
+      header {
+          padding: 0 15px;
+      }
+      header h2 {
+          font-size: 20px;
+      }
+      .messages {
+          padding: 15px 20px;
+      }
+      .message {
+          max-width: 80%;
+          font-size: 14px;
+      }
+      .input-area {
+          padding: 10px 15px;
+      }
+      .input-area input[type="text"] {
+          padding: 10px 15px;
+          font-size: 14px;
+      }
+      .input-area button {
+          padding: 10px 18px;
+          font-size: 14px;
+      }
+      .aes-key-input input[type="text"] {
+          width: 100px;
+          font-size: 13px;
+      }
+      .file-upload-btn {
+          padding: 8px 12px;
+          font-size: 12px;
+      }
+      .emoji-picker {
+          font-size: 20px;
+      }
+      .modal-content {
+          width: 95%;
+          padding: 20px;
+      }
+    }
+
+    @media (max-width: 480px) {
+        .messages {
+            padding: 10px;
+        }
+        .message {
+            max-width: 90%;
+            padding: 10px 15px;
+        }
+        .input-area form {
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .input-area input[type="text"] {
+            flex-basis: 100%;
+            margin-bottom: 5px;
+        }
+        .aes-key-input {
+            flex-basis: 100%;
+        }
+        .file-upload-btn {
+            order: -1;
+            flex-basis: 48%;
+        }
+        .input-area button {
+            flex-basis: 48%;
+            margin-left: auto;
+        }
+        .emoji-picker {
+            margin-right: 5px;
+        }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Secure Messenger</h2>
+    <div class="user-display">
+      <span class="username">Xin chào, {{ username }}</span>
+      <a href="/login"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+    </div>
+  </header>
+
+  <div class="chat-container">
+    <aside class="chat-sidebar">
+      <h3>Nhóm chat</h3>
+      <div class="sidebar-actions">
+          <button class="create-group-btn" onclick="openCreateGroupModal()"><i class="fas fa-plus-circle"></i> Tạo nhóm</button>
+          <button class="join-group-btn" onclick="openJoinGroupModal()"><i class="fas fa-users-medical"></i> Tham gia nhóm</button>
+      </div>
+      <div class="groups-list" id="groupsList">
+        {% for group in available_groups %}
+        <div class="group-item {% if loop.first %}active{% endif %}" data-groupname="{{ group }}" onclick="selectGroup('{{ group }}')">
+            <i class="fas fa-comments"></i> <span>{{ group }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </aside>
+
+    <main class="chat-main">
+      <div class="messages" id="messagesDiv">
+        <div class="group-title" id="currentGroupTitle">Nhóm: Nhóm bạn thân</div>
+        {% for msg in initial_messages %}
+        <div class="message {% if msg.sender == username %}sent{% else %}received{% endif %}">
+            <span class="sender">{{ msg.sender }}</span>
+            <span class="content">{{ msg.decrypted_display }}</span> <div class="timestamp">{{ msg.timestamp }}</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="input-area">
+        <div class="emoji-picker">
+          <i class="far fa-grin"></i>
+        </div>
+        <form id="messageForm">
+          <input type="text" id="messageInput" name="message" placeholder="Nhập tin nhắn..." autocomplete="off" />
+          <label for="fileInput" class="file-upload-btn"><i class="fas fa-paperclip"></i> Thêm file</label>
+          <input type="file" id="fileInput" name="file" />
+          <div class="aes-key-input">
+            <label for="aesKey">Mã khóa AES</label>
+            <input type="text" id="aesKey" name="key" placeholder="Nhập mã khóa" />
+          </div>
+          <button type="submit"><i class="fas fa-paper-plane"></i> Gửi</button>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <div id="createGroupModal" class="modal">
+    <div class="modal-content">
+      <h3>Tạo nhóm mới</h3>
+      <input type="text" id="newGroupNameInput" placeholder="Nhập tên nhóm mới" />
+      <div class="modal-actions">
+        <button class="cancel-btn" onclick="closeCreateGroupModal()">Hủy</button>
+        <button class="confirm-btn" onclick="createGroup()">Tạo</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="joinGroupModal" class="modal">
+    <div class="modal-content">
+      <h3>Tham gia nhóm</h3>
+      <input type="text" id="joinGroupNameInput" placeholder="Nhập tên nhóm cần tham gia" />
+      <div class="modal-actions">
+        <button class="cancel-btn" onclick="closeJoinGroupModal()">Hủy</button>
+        <button class="confirm-btn" onclick="joinGroup()">Tham gia</button>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const messagesDiv = document.getElementById('messagesDiv');
+    const messageInput = document.getElementById('messageInput');
+    const aesKeyInput = document.getElementById('aesKey');
+    const messageForm = document.getElementById('messageForm');
+    const groupsList = document.getElementById('groupsList');
+    const currentGroupTitle = document.getElementById('currentGroupTitle');
+
+    let currentActiveGroup = "Nhóm bạn thân"; // Default active group
+
+    // Scroll to bottom when messages are loaded/added
+    function scrollToBottom() {
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // Function to add a message to the chat UI
+    function addMessageToUI(msg_data, isOwnMessage) {
+        const bubble = document.createElement("div");
+        bubble.className = `message ${isOwnMessage ? 'sent' : 'received'}`;
+        bubble.innerHTML = `
+            <span class="sender">${msg_data.sender}</span>
+            <span class="content">${msg_data.decrypted_display || msg_data.encrypted}</span>
+            <div class="timestamp">${msg_data.timestamp}</div>
+        `;
+        messagesDiv.appendChild(bubble);
+        scrollToBottom();
+    }
+
+    // Socket.IO event listeners
+    socket.on('connect', function() {
+        console.log('Connected to server');
+        socket.emit('join', { 'room': currentActiveGroup }); // Join default group on connect
+    });
+
+    socket.on('status', function(data) {
+        // Display server status messages
+        const statusDiv = document.createElement("div");
+        statusDiv.className = "message system-status"; // Add a specific class for system messages
+        statusDiv.textContent = data.msg;
+        messagesDiv.appendChild(statusDiv);
+        scrollToBottom();
+    });
+
+    socket.on('receive_message', function(msg_data) {
+        const isOwnMessage = msg_data.sender === "{{ username }}";
+        addMessageToUI(msg_data, isOwnMessage);
+    });
+
+    socket.on('load_messages', function(data) {
+        messagesDiv.innerHTML = `<div class="group-title" id="currentGroupTitle">Nhóm: ${currentActiveGroup}</div>`; // Clear and set title
+        data.messages.forEach(msg => {
+            const isOwnMessage = msg.sender === "{{ username }}";
+            addMessageToUI(msg, isOwnMessage);
+        });
+    });
+
+    socket.on('group_list_update', function(data) {
+        groupsList.innerHTML = ''; // Clear existing list
+        data.groups.forEach(groupName => {
+            const groupItem = document.createElement('div');
+            groupItem.className = `group-item ${groupName === currentActiveGroup ? 'active' : ''}`;
+            groupItem.setAttribute('data-groupname', groupName);
+            groupItem.onclick = () => selectGroup(groupName);
+            groupItem.innerHTML = `<i class="fas fa-comments"></i> <span>${groupName}</span>`;
+            groupsList.appendChild(groupItem);
+        });
+    });
+
+    // Form submission for sending messages
+    messageForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const message = messageInput.value.trim();
+      const aesKey = aesKeyInput.value.trim();
+
+      if (message && aesKey && currentActiveGroup) {
+        socket.emit('send_message', { message: message, key: aesKey, room: currentActiveGroup });
+        messageInput.value = "";
+      } else {
+        alert("Vui lòng nhập tin nhắn, mã khóa AES và chọn một nhóm.");
+      }
+    });
+
+    // Group selection logic
+    function selectGroup(groupName) {
+        if (currentActiveGroup !== groupName) {
+            socket.emit('leave', { 'room': currentActiveGroup }); // Leave old group
+            currentActiveGroup = groupName;
+            socket.emit('join', { 'room': currentActiveGroup }); // Join new group
+            currentGroupTitle.textContent = `Nhóm: ${groupName}`; // Update group title in UI
+
+            // Update active class in sidebar
+            document.querySelectorAll('.group-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`.group-item[data-groupname="${groupName}"]`).classList.add('active');
+
+            messagesDiv.innerHTML = `<div class="group-title" id="currentGroupTitle">Nhóm: ${currentActiveGroup}</div>`; // Clear messages, wait for load_messages event
+        }
+    }
+
+    // Modal functions
+    function openCreateGroupModal() {
+        document.getElementById('createGroupModal').style.display = 'flex';
+    }
+
+    function closeCreateGroupModal() {
+        document.getElementById('createGroupModal').style.display = 'none';
+        document.getElementById('newGroupNameInput').value = '';
+    }
+
+    function createGroup() {
+        const newGroupName = document.getElementById('newGroupNameInput').value.trim();
+        if (newGroupName) {
+            socket.emit('create_group', { 'group_name': newGroupName });
+            closeCreateGroupModal();
+            // Server will send 'group_list_update' and 'status' events
+            // and automatically join the new group if successful
+        } else {
+            alert("Vui lòng nhập tên nhóm.");
+        }
+    }
+
+    function openJoinGroupModal() {
+        document.getElementById('joinGroupModal').style.display = 'flex';
+    }
+
+    function closeJoinGroupModal() {
+        document.getElementById('joinGroupModal').style.display = 'none';
+        document.getElementById('joinGroupNameInput').value = '';
+    }
+
+    function joinGroup() {
+        const joinGroupName = document.getElementById('joinGroupNameInput').value.trim();
+        if (joinGroupName) {
+            socket.emit('join', { 'room': joinGroupName });
+            closeJoinGroupModal();
+            // Server will send 'status' and 'load_messages' if successful
+        } else {
+            alert("Vui lòng nhập tên nhóm cần tham gia.");
+        }
+    }
+
+    // Initial scroll to bottom
+    document.addEventListener('DOMContentLoaded', scrollToBottom);
+  </script>
+</body>
+</html>
